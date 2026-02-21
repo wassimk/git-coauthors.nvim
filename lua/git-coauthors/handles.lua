@@ -5,13 +5,17 @@ local _cached_handles = nil
 function M.load(config)
   local handles = {}
 
+  if config.discover ~= false then
+    handles = require('git-coauthors.discover').discover(config)
+  end
+
   local json_path = vim.fn.expand(config.handles_path)
   if vim.fn.filereadable(json_path) == 1 then
     local ok, decoded = pcall(function()
       return vim.fn.json_decode(vim.fn.readfile(json_path))
     end)
     if ok and type(decoded) == 'table' then
-      handles = decoded
+      handles = vim.tbl_extend('force', handles, decoded)
     end
   end
 

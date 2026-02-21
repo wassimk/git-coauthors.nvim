@@ -3,6 +3,7 @@ local M = {}
 M._config = {
   handles_path = vim.fn.stdpath('data') .. '/git-coauthors/handles.json',
   handles = nil,
+  discover = true,
 }
 
 M._setup_called = false
