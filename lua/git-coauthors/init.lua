@@ -13,7 +13,6 @@ function M.setup(opts)
   M._setup_called = true
 
   require('git-coauthors.handles')._reset_cache()
-  require('git-coauthors.handles').load(M._config)
 end
 
 return M
