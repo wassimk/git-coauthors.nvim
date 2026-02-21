@@ -48,9 +48,34 @@ Add `git_coauthors` to your nvim-cmp sources for the gitcommit filetype.
 
 ## 💻 Usage
 
-### Step 1: Define Your Handles
+### Auto-Discovery (Default)
 
-Create a JSON file that maps GitHub handles to names and emails:
+The plugin auto-discovers co-authors from your repository with zero
+configuration:
+
+1. **GitHub collaborators** (preferred): If the
+   [`gh` CLI](https://cli.github.com/) is installed and authenticated,
+   collaborators are pulled from the GitHub API with real `@handle` completions
+   (e.g., `@molawson`).
+
+2. **Git log fallback**: When `gh` is unavailable, co-authors are read from
+   `git log` history using `@Full Name` format (e.g., `@Mo Lawson`).
+
+Discovery runs in the background so it never blocks your editor. On the first
+`@` trigger in a session, there may be a brief delay while the plugin fetches
+collaborators from the GitHub API or parses your git log. The completion menu
+will update automatically once results are ready. Subsequent triggers are
+instant since results are cached. Your own name is automatically excluded from
+results.
+
+Set `discover = false` in [Configuration](#-configuration) to disable
+auto-discovery and use only manually defined handles.
+
+### Manual Handles (Optional Overrides)
+
+For people not yet in the repo, or to override a discovered entry, you can
+define handles manually. Create a JSON file that maps handles to names and
+emails:
 
 ```json
 {
@@ -66,8 +91,10 @@ inline through your plugin config instead of using a file (see
 
 The values are `Name <email>` strings matching the format git expects for
 [`Co-Authored-By` trailers](https://docs.github.com/en/pull-requests/committing-changes-to-your-project/creating-and-editing-commits/creating-a-commit-with-multiple-authors).
+Manual handles are merged on top of discovered ones, so a manual `@alice` entry
+overrides any `@alice` found via GitHub or git log.
 
-### Step 2: Use in a Commit
+### Use in a Commit
 
 The plugin provides two things in gitcommit buffers:
 
@@ -117,6 +144,7 @@ require('git-coauthors').setup({
 
 | Option | Default | Description |
 | --- | --- | --- |
+| `discover` | `true` | Auto-discover co-authors from GitHub/git log. Set `false` to use only file/inline handles. |
 | `handles_path` | `~/.local/share/nvim/git-coauthors/handles.json` | Path to the JSON handles file |
 | `handles` | `nil` | Inline handles (merged over file, inline wins on duplicates) |
 

@@ -1,13 +1,22 @@
 local helpers = require('helpers')
 local handles = require('git-coauthors.handles')
+local discover = require('git-coauthors.discover')
 local git_coauthors = require('git-coauthors')
 
 describe('handles', function()
+  local _original_discover_async
+
   before_each(function()
     helpers.setup_mocks()
+    _original_discover_async = discover.discover_async
+    -- Mock discover_async to call callback synchronously via sync discover()
+    discover.discover_async = function(config, callback)
+      callback(discover.discover(config))
+    end
   end)
 
   after_each(function()
+    discover.discover_async = _original_discover_async
     helpers.teardown_mocks()
   end)
 
@@ -72,5 +81,100 @@ describe('handles', function()
     local result2 = handles.get()
 
     assert.equals(result1, result2)
+  end)
+
+  describe('with discovery', function()
+    it('file handles override discovered handles on key collision', function()
+      local response = vim.fn.json_encode({
+        data = {
+          repository = {
+            collaborators = {
+              totalCount = 2,
+              nodes = {
+                { login = 'alice', name = 'Alice GH', databaseId = 12345 },
+                { login = 'carol', name = 'Carol Davis', databaseId = 33333 },
+              },
+              pageInfo = { hasNextPage = false },
+            },
+          },
+        },
+      })
+
+      helpers.executables = { gh = true }
+      helpers.system_responses = {
+        { 'gh repo view', 'owner/repo\n', exit_code = 0 },
+        { 'gh api user', 'nobody\n', exit_code = 0 },
+        { 'gh api graphql', response .. '\n', exit_code = 0 },
+      }
+
+      git_coauthors.setup()
+      local result = handles.get()
+
+      assert.equals('Alice Smith <alice@example.com>', result['@alice'])
+      assert.equals('Bob Jones <bob@example.com>', result['@bob'])
+      assert.equals('Carol Davis <33333+carol@users.noreply.github.com>', result['@carol'])
+    end)
+
+    it('inline handles override discovered handles on key collision', function()
+      local response = vim.fn.json_encode({
+        data = {
+          repository = {
+            collaborators = {
+              totalCount = 1,
+              nodes = {
+                { login = 'carol', name = 'Carol Davis', databaseId = 33333 },
+              },
+              pageInfo = { hasNextPage = false },
+            },
+          },
+        },
+      })
+
+      helpers.executables = { gh = true }
+      helpers.system_responses = {
+        { 'gh repo view', 'owner/repo\n', exit_code = 0 },
+        { 'gh api user', 'nobody\n', exit_code = 0 },
+        { 'gh api graphql', response .. '\n', exit_code = 0 },
+      }
+
+      git_coauthors.setup({
+        handles = {
+          ['@carol'] = 'Carol Override <carol-new@example.com>',
+        },
+      })
+      local result = handles.get()
+
+      assert.equals('Carol Override <carol-new@example.com>', result['@carol'])
+    end)
+
+    it('does not discover when disabled', function()
+      local response = vim.fn.json_encode({
+        data = {
+          repository = {
+            collaborators = {
+              totalCount = 1,
+              nodes = {
+                { login = 'carol', name = 'Carol Davis', databaseId = 33333 },
+              },
+              pageInfo = { hasNextPage = false },
+            },
+          },
+        },
+      })
+
+      helpers.executables = { gh = true }
+      helpers.system_responses = {
+        { 'gh repo view', 'owner/repo\n', exit_code = 0 },
+        { 'gh api user', 'nobody\n', exit_code = 0 },
+        { 'gh api graphql', response .. '\n', exit_code = 0 },
+      }
+
+      git_coauthors.setup({ discover = false })
+      local result = handles.get()
+
+      assert.equals('Alice Smith <alice@example.com>', result['@alice'])
+      assert.equals('Bob Jones <bob@example.com>', result['@bob'])
+      assert.is_nil(result['@carol'])
+    end)
   end)
 end)
