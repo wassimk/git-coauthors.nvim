@@ -1,0 +1,6 @@
+{
+  "name": "git-coauthors.nvim",
+  "contributes": {
+    "snippets": [{ "language": "gitcommit", "path": "./snippets/gitcommit.json" }]
+  }
+}

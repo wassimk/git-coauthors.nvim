@@ -1,0 +1,7 @@
+{
+  "Co-Authored-By": {
+    "prefix": "cab",
+    "body": "Co-Authored-By: ${1:@handle}",
+    "description": "Add a co-author to this commit"
+  }
+}
