@@ -1,7 +1,7 @@
 # git-coauthors.nvim
 
-Neovim completion source for `Co-Authored-By:` git commit trailers. Type a
-GitHub handle and complete it to `Name <email>` format.
+Autocomplete `Co-Authored-By` lines in git commits. Type a GitHub handle and
+complete it to `Name <email>` format.
 
 ## Requirements
 
