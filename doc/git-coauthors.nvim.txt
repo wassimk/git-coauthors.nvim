@@ -69,8 +69,8 @@ USAGE                            *git-coauthors.nvim-git-coauthors.nvim-usage*
 2. Type `@` to trigger handle completion
 3. Select a handle to insert the full `Name <email>`
 
-Handles are loaded from a JSON file at `vim.fn.stdpath('data') ..
-'/git-coauthors/handles.json'`:
+Handles are loaded from a JSON file at
+`~/.local/share/nvim/git-coauthors/handles.json`:
 
 >json
     {
@@ -110,16 +110,16 @@ Pass options via blink.cmp’s provider `opts` or
     })
 <
 
-  --------------------------------------------------------------------------------------------------
-  Option                  Default                                            Description
-  ----------------------- -------------------------------------------------- -----------------------
-  handles_path            stdpath('data') .. '/git-coauthors/handles.json'   Path to the JSON
-                                                                             handles file
+  ------------------------------------------------------------------------------------------------
+  Option                  Default                                          Description
+  ----------------------- ------------------------------------------------ -----------------------
+  handles_path            ~/.local/share/nvim/git-coauthors/handles.json   Path to the JSON
+                                                                           handles file
 
-  handles                 nil                                                Inline handles (merged
-                                                                             over file, inline wins
-                                                                             on duplicates)
-  --------------------------------------------------------------------------------------------------
+  handles                 nil                                              Inline handles (merged
+                                                                           over file, inline wins
+                                                                           on duplicates)
+  ------------------------------------------------------------------------------------------------
 
 SNIPPET                        *git-coauthors.nvim-git-coauthors.nvim-snippet*
 
