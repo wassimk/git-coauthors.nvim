@@ -1,13 +1,10 @@
 local M = {}
 
 local _cached_handles = nil
+local _discovery_pending = false
 
-function M.load(config)
+function M.load_fast(config)
   local handles = {}
-
-  if config.discover ~= false then
-    handles = require('git-coauthors.discover').discover(config)
-  end
 
   local json_path = vim.fn.expand(config.handles_path)
   if vim.fn.filereadable(json_path) == 1 then
@@ -23,7 +20,6 @@ function M.load(config)
     handles = vim.tbl_extend('force', handles, config.handles)
   end
 
-  _cached_handles = handles
   return handles
 end
 
@@ -33,11 +29,24 @@ function M.get()
   end
 
   local config = require('git-coauthors')._config
-  return M.load(config)
+  _cached_handles = M.load_fast(config)
+
+  if config.discover ~= false and not _discovery_pending then
+    _discovery_pending = true
+    require('git-coauthors.discover').discover_async(config, function(discovered)
+      _discovery_pending = false
+      if discovered and not vim.tbl_isempty(discovered) then
+        _cached_handles = vim.tbl_extend('force', discovered, _cached_handles)
+      end
+    end)
+  end
+
+  return _cached_handles
 end
 
 function M._reset_cache()
   _cached_handles = nil
+  _discovery_pending = false
 end
 
 return M

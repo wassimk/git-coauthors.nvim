@@ -1,30 +1,54 @@
 local M = {}
 
+local async_coroutines = setmetatable({}, { __mode = 'k' })
+
+local function run_cmd(cmd)
+  local co = coroutine.running()
+  if not co or not async_coroutines[co] then
+    local output = vim.fn.system(cmd)
+    return { stdout = output, code = vim.v.shell_error }
+  end
+
+  vim.system(cmd, { text = true }, function(result)
+    vim.schedule(function()
+      coroutine.resume(co, result)
+    end)
+  end)
+  return coroutine.yield()
+end
+
+local function async_run(fn)
+  local co = coroutine.create(fn)
+  async_coroutines[co] = true
+  coroutine.resume(co)
+end
+
 local function is_gh_available()
   return vim.fn.executable('gh') == 1
 end
 
 local function get_repo_info()
-  local output = vim.fn.system({ 'gh', 'repo', 'view', '--json', 'owner,name', '--jq', '.owner.login + "/" + .name' })
-  if vim.v.shell_error ~= 0 then
+  local result = run_cmd({ 'gh', 'repo', 'view', '--json', 'owner,name', '--jq', '.owner.login + "/" + .name' })
+  if result.code ~= 0 then
     return nil
   end
-  return vim.trim(output)
+  return vim.trim(result.stdout)
 end
 
 local function get_current_gh_user()
-  local output = vim.fn.system({ 'gh', 'api', 'user', '--jq', '.login' })
-  if vim.v.shell_error ~= 0 then
+  local result = run_cmd({ 'gh', 'api', 'user', '--jq', '.login' })
+  if result.code ~= 0 then
     return nil
   end
-  return vim.trim(output)
+  return vim.trim(result.stdout)
 end
 
 local function parse_git_log()
-  local output = vim.fn.system({ 'git', 'log', '--format=%aN <%aE>' })
-  if vim.v.shell_error ~= 0 then
+  local result = run_cmd({ 'git', 'log', '--format=%aN <%aE>' })
+  if result.code ~= 0 then
     return {}, {}
   end
+  local output = result.stdout
 
   local email_to_names = {}
   local name_to_emails = {}
@@ -115,12 +139,12 @@ local function discover_from_github()
       after_clause
     )
 
-    local output = vim.fn.system({ 'gh', 'api', 'graphql', '-f', 'query=' .. query })
-    if vim.v.shell_error ~= 0 then
+    local result = run_cmd({ 'gh', 'api', 'graphql', '-f', 'query=' .. query })
+    if result.code ~= 0 then
       return nil
     end
 
-    local ok, decoded = pcall(vim.fn.json_decode, output)
+    local ok, decoded = pcall(vim.fn.json_decode, result.stdout)
     if not ok or not decoded then
       return nil
     end
@@ -172,18 +196,19 @@ local function discover_from_github()
 end
 
 local function discover_from_git_log()
-  vim.fn.system({ 'git', 'rev-parse', '--show-toplevel' })
-  if vim.v.shell_error ~= 0 then
+  local rev_result = run_cmd({ 'git', 'rev-parse', '--show-toplevel' })
+  if rev_result.code ~= 0 then
     return {}
   end
 
-  local current_name = vim.trim(vim.fn.system({ 'git', 'config', 'user.name' }))
-  local current_email = vim.trim(vim.fn.system({ 'git', 'config', 'user.email' }))
+  local current_name = vim.trim(run_cmd({ 'git', 'config', 'user.name' }).stdout)
+  local current_email = vim.trim(run_cmd({ 'git', 'config', 'user.email' }).stdout)
 
-  local output = vim.fn.system({ 'git', 'log', '--format=%aN <%aE>' })
-  if vim.v.shell_error ~= 0 then
+  local log_result = run_cmd({ 'git', 'log', '--format=%aN <%aE>' })
+  if log_result.code ~= 0 then
     return {}
   end
+  local output = log_result.stdout
 
   local handles = {}
   local seen = {}
@@ -215,6 +240,20 @@ function M.discover(config)
   end
 
   return discover_from_git_log()
+end
+
+function M.discover_async(config, callback)
+  if config.discover == false then
+    return callback({})
+  end
+
+  async_run(function()
+    local github_handles = discover_from_github()
+    if github_handles then
+      return callback(github_handles)
+    end
+    callback(discover_from_git_log())
+  end)
 end
 
 return M

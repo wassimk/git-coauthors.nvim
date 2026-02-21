@@ -1,13 +1,22 @@
 local helpers = require('helpers')
 local handles = require('git-coauthors.handles')
+local discover = require('git-coauthors.discover')
 local git_coauthors = require('git-coauthors')
 
 describe('handles', function()
+  local _original_discover_async
+
   before_each(function()
     helpers.setup_mocks()
+    _original_discover_async = discover.discover_async
+    -- Mock discover_async to call callback synchronously via sync discover()
+    discover.discover_async = function(config, callback)
+      callback(discover.discover(config))
+    end
   end)
 
   after_each(function()
+    discover.discover_async = _original_discover_async
     helpers.teardown_mocks()
   end)
 
