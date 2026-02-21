@@ -4,12 +4,11 @@
 Table of Contents                       *git-coauthors.nvim-table-of-contents*
 
 1. git-coauthors.nvim                  |git-coauthors.nvim-git-coauthors.nvim|
-  - Requirements          |git-coauthors.nvim-git-coauthors.nvim-requirements|
-  - Installation          |git-coauthors.nvim-git-coauthors.nvim-installation|
-  - Usage                        |git-coauthors.nvim-git-coauthors.nvim-usage|
-  - Configuration        |git-coauthors.nvim-git-coauthors.nvim-configuration|
-  - Snippet                    |git-coauthors.nvim-git-coauthors.nvim-snippet|
-  - Development            |git-coauthors.nvim-git-coauthors.nvim-development|
+  - 📋 Requirements|git-coauthors.nvim-git-coauthors.nvim-📋-requirements|
+  - 🛠️ Installation|git-coauthors.nvim-git-coauthors.nvim-���-️-installation|
+  - 💻 Usage              |git-coauthors.nvim-git-coauthors.nvim-💻-usage|
+  - 🔧 Configuration|git-coauthors.nvim-git-coauthors.nvim-🔧-configuration|
+  - 🔨 Development  |git-coauthors.nvim-git-coauthors.nvim-🔨-development|
 
 ==============================================================================
 1. git-coauthors.nvim                  *git-coauthors.nvim-git-coauthors.nvim*
@@ -18,13 +17,13 @@ Autocomplete `Co-Authored-By` lines in git commits. Type a GitHub handle and
 complete it to `Name <email>` format.
 
 
-REQUIREMENTS              *git-coauthors.nvim-git-coauthors.nvim-requirements*
+П�� REQUIREMENTS    *git-coauthors.nvim-git-coauthors.nvim-📋-requirements*
 
 - **Neovim 0.10+**
 - blink.cmp <https://github.com/Saghen/blink.cmp> or nvim-cmp <https://github.com/hrsh7th/nvim-cmp>
 
 
-INSTALLATION              *git-coauthors.nvim-git-coauthors.nvim-installation*
+П��ϸ� INSTALLATION*git-coauthors.nvim-git-coauthors.nvim-���-️-installation*
 
 
 BLINK.CMP ~
@@ -63,14 +62,12 @@ The source auto-registers when nvim-cmp is detected:
 Add `git_coauthors` to your nvim-cmp sources for the gitcommit filetype.
 
 
-USAGE                            *git-coauthors.nvim-git-coauthors.nvim-usage*
+П�� USAGE                  *git-coauthors.nvim-git-coauthors.nvim-💻-usage*
 
-1. In a git commit buffer, type `cab` to expand the `Co-Authored-By:` snippet
-2. Type `@` to trigger handle completion
-3. Select a handle to insert the full `Name <email>`
 
-Handles are loaded from a JSON file at
-`~/.local/share/nvim/git-coauthors/handles.json`:
+STEP 1: DEFINE YOUR HANDLES ~
+
+Create a JSON file that maps GitHub handles to names and emails:
 
 >json
     {
@@ -79,11 +76,40 @@ Handles are loaded from a JSON file at
     }
 <
 
-Keys are GitHub handles (with `@` prefix), values are `Name <email>` strings
-matching the format git expects for `Co-Authored-By` trailers.
+Save this at `~/.local/share/nvim/git-coauthors/handles.json` (the default
+location, which is Neovim’s standard data directory). You can also pass
+handles inline through your plugin config instead of using a file (see
+|git-coauthors.nvim-configuration|).
+
+The values are `Name <email>` strings matching the format git expects for
+`Co-Authored-By` trailers
+<https://docs.github.com/en/pull-requests/committing-changes-to-your-project/creating-and-editing-commits/creating-a-commit-with-multiple-authors>.
 
 
-CONFIGURATION            *git-coauthors.nvim-git-coauthors.nvim-configuration*
+STEP 2: USE IN A COMMIT ~
+
+The plugin provides two things in gitcommit buffers:
+
+1. **A cab snippet** that expands to `Co-Authored-By: @handle`
+2. **Handle completion** triggered by typing `@` after the `Co-Authored-By:` prefix
+
+The typical flow:
+
+1. Type `cab` and expand the snippet
+2. The cursor lands on `@handle`. Type `@` to see all your handles, or start
+typing a name to filter
+3. Select an entry to replace the placeholder with the full `Name <email>`
+
+Your resulting commit message looks like:
+
+>
+    feat: add dark mode support
+    
+    Co-Authored-By: Alice Smith <alice@example.com>
+<
+
+
+П�� CONFIGURATION  *git-coauthors.nvim-git-coauthors.nvim-🔧-configuration*
 
 Pass options via blink.cmp’s provider `opts` or
 `require('git-coauthors').setup()`:
@@ -121,21 +147,15 @@ Pass options via blink.cmp’s provider `opts` or
                                                                            on duplicates)
   ------------------------------------------------------------------------------------------------
 
-SNIPPET                        *git-coauthors.nvim-git-coauthors.nvim-snippet*
+SNIPPET ~
 
-The plugin ships a `cab` snippet for gitcommit files that expands to:
-
->
-    Co-Authored-By: @handle
-<
-
-This is distributed as a VSCode-format snippet via `package.json`, which works
-with blink.cmp’s built-in snippet source and LuaSnip’s `from_vscode()`
-loader. The plugin also registers the snippet directly with LuaSnip as a
-fallback for lazy-loading timing issues.
+The `cab` snippet is distributed as a VSCode-format snippet via `package.json`,
+which works with blink.cmp’s built-in snippet source and LuaSnip’s
+`from_vscode()` loader. The plugin also registers the snippet directly with
+LuaSnip as a fallback for lazy-loading timing issues.
 
 
-DEVELOPMENT                *git-coauthors.nvim-git-coauthors.nvim-development*
+П�� DEVELOPMENT      *git-coauthors.nvim-git-coauthors.nvim-🔨-development*
 
 Run tests and lint:
 
