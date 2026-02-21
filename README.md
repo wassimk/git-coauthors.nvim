@@ -61,9 +61,13 @@ configuration:
 2. **Git log fallback**: When `gh` is unavailable, co-authors are read from
    `git log` history using `@Full Name` format (e.g., `@Mo Lawson`).
 
-Your own name is automatically excluded from the list. Set `discover = false` in
-[Configuration](#-configuration) to disable auto-discovery and use only manually
-defined handles.
+Discovery runs in the background so it never blocks your editor. On the first
+`@` trigger, you will see any file or inline handles right away. Discovered
+handles appear a moment later on the next keystroke once the background lookup
+finishes. Your own name is automatically excluded from results.
+
+Set `discover = false` in [Configuration](#-configuration) to disable
+auto-discovery and use only manually defined handles.
 
 ### Manual Handles (Optional Overrides)
 
