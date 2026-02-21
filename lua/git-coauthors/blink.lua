@@ -26,8 +26,12 @@ function source:get_completions(context, callback)
   }
 
   local items = build_items(cursor_info)
+  local sent_labels = {}
 
   if items then
+    for _, item in ipairs(items) do
+      sent_labels[item.label] = true
+    end
     callback({ is_incomplete_forward = false, is_incomplete_backward = false, items = items })
   else
     callback({ is_incomplete_forward = false, is_incomplete_backward = false, items = {} })
@@ -37,7 +41,12 @@ function source:get_completions(context, callback)
     handles.on_discovery_complete(function()
       local updated_items = build_items(cursor_info)
       if updated_items then
-        callback({ is_incomplete_forward = false, is_incomplete_backward = false, items = updated_items })
+        local new_items = vim.tbl_filter(function(item)
+          return not sent_labels[item.label]
+        end, updated_items)
+        if #new_items > 0 then
+          callback({ is_incomplete_forward = false, is_incomplete_backward = false, items = new_items })
+        end
       end
     end)
   end
