@@ -50,7 +50,7 @@ Add `git_coauthors` to your nvim-cmp sources for the gitcommit filetype.
 2. Type `@` to trigger handle completion
 3. Select a handle to insert the full `Name <email>`
 
-Handles are loaded from a JSON file at `vim.fn.stdpath('data') .. '/git-coauthors/handles.json'`:
+Handles are loaded from a JSON file at `~/.local/share/nvim/git-coauthors/handles.json`:
 
 ```json
 {
@@ -90,7 +90,7 @@ require('git-coauthors').setup({
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `handles_path` | `stdpath('data') .. '/git-coauthors/handles.json'` | Path to the JSON handles file |
+| `handles_path` | `~/.local/share/nvim/git-coauthors/handles.json` | Path to the JSON handles file |
 | `handles` | `nil` | Inline handles (merged over file, inline wins on duplicates) |
 
 ## Snippet
