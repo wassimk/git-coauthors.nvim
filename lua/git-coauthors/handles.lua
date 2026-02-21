@@ -2,6 +2,7 @@ local M = {}
 
 local _cached_handles = nil
 local _discovery_pending = false
+local _discovery_listeners = {}
 
 function M.load_fast(config)
   local handles = {}
@@ -38,15 +39,29 @@ function M.get()
       if discovered and not vim.tbl_isempty(discovered) then
         _cached_handles = vim.tbl_extend('force', discovered, _cached_handles)
       end
+      local listeners = _discovery_listeners
+      _discovery_listeners = {}
+      for _, fn in ipairs(listeners) do
+        fn()
+      end
     end)
   end
 
   return _cached_handles
 end
 
+function M.is_discovery_pending()
+  return _discovery_pending
+end
+
+function M.on_discovery_complete(fn)
+  table.insert(_discovery_listeners, fn)
+end
+
 function M._reset_cache()
   _cached_handles = nil
   _discovery_pending = false
+  _discovery_listeners = {}
 end
 
 return M

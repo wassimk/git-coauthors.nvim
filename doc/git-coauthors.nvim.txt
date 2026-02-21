@@ -81,9 +81,11 @@ log` history using `@Full Name` format (e.g., `@Mo Lawson`).
 
 
 Discovery runs in the background so it never blocks your editor. On the first
-`@` trigger, you will see any file or inline handles right away. Discovered
-handles appear a moment later on the next keystroke once the background lookup
-finishes. Your own name is automatically excluded from results.
+`@` trigger in a session, there may be a brief delay while the plugin fetches
+collaborators from the GitHub API or parses your git log. The completion menu
+will update automatically once results are ready. Subsequent triggers are
+instant since results are cached. Your own name is automatically excluded from
+results.
 
 Set `discover = false` in |git-coauthors.nvim-configuration| to disable
 auto-discovery and use only manually defined handles.

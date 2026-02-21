@@ -1,11 +1,19 @@
 local helpers = require('helpers')
+local discover = require('git-coauthors.discover')
 
 describe('blink source', function()
+  local _original_discover_async
+
   before_each(function()
     helpers.setup_mocks()
+    _original_discover_async = discover.discover_async
+    discover.discover_async = function(config, callback)
+      callback(discover.discover(config))
+    end
   end)
 
   after_each(function()
+    discover.discover_async = _original_discover_async
     helpers.teardown_mocks()
   end)
 
