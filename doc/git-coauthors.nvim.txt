@@ -152,11 +152,14 @@ nvim-cmp users can pass the same options to `require('git-coauthors').setup()`.
 
 П�� COEXISTING WITH OTHER @ SOURCES*git-coauthors.nvim-git-coauthors.nvim-🤝-coexisting-with-other-@-sources*
 
-If you also use blink-cmp-git <https://github.com/Kaiser-Yang/blink-cmp-git>
-for GitHub `@` mentions, use `is_coauthor_context()` with blink.cmp’s
-`transform_items` to suppress its results on `Co-Authored-By:` lines:
+If another completion source also triggers on `@` (e.g., blink-cmp-git
+<https://github.com/Kaiser-Yang/blink-cmp-git> for GitHub mentions), both will
+fire on `Co-Authored-By:` lines. `is_coauthor_context()` returns `true` when
+the cursor is on a `Co-Authored-By:` line so you can conditionally suppress the
+other source:
 
 >lua
+    -- blink.cmp + blink-cmp-git
     git = {
       name = 'Git',
       module = 'blink-cmp-git',
@@ -167,10 +170,13 @@ for GitHub `@` mentions, use `is_coauthor_context()` with blink.cmp’s
         return items
       end,
     },
+    
+    -- nvim-cmp + cmp-git
+    { name = 'git', entry_filter = function(entry, ctx)
+        return not require('git-coauthors').is_coauthor_context()
+      end,
+    },
 <
-
-Note: blink-cmp-git’s per-feature `enable` option is evaluated at cache time,
-not per-keystroke, so `transform_items` is the correct approach here.
 
 
 П�� DEVELOPMENT      *git-coauthors.nvim-git-coauthors.nvim-🔨-development*
