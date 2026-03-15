@@ -48,34 +48,39 @@ Add `git_coauthors` to your nvim-cmp sources for the gitcommit filetype.
 
 ## 💻 Usage
 
-### Auto-Discovery (Default)
+The plugin provides a `cab` snippet and `@` handle completion in gitcommit
+buffers:
 
-The plugin auto-discovers co-authors from your repository with zero
-configuration:
+1. Type `cab` and expand the snippet
+2. The cursor lands on `@handle`. Type `@` to see all handles, or start typing
+   to filter
+3. Select an entry to replace the placeholder with the full `Name <email>`
+
+```
+feat: add dark mode support
+
+Co-Authored-By: Alice Smith <alice@example.com>
+```
+
+### Auto-Discovery
+
+Co-authors are discovered automatically with zero configuration:
 
 1. **GitHub collaborators** (preferred): If the
    [`gh` CLI](https://cli.github.com/) is installed and authenticated,
-   collaborators are pulled from the GitHub API with real `@handle` completions
-   (e.g., `@molawson`).
+   collaborators are pulled from the GitHub API (e.g., `@octocat`).
 
 2. **Git log fallback**: When `gh` is unavailable, co-authors are read from
-   `git log` history using `@Full Name` format (e.g., `@Mo Lawson`).
+   `git log` history (e.g., `@Jane Smith`).
 
-Discovery runs in the background so it never blocks your editor. On the first
-`@` trigger in a session, there may be a brief delay while the plugin fetches
-collaborators from the GitHub API or parses your git log. The completion menu
-will update automatically once results are ready. Subsequent triggers are
-instant since results are cached. Your own name is automatically excluded from
-results.
+Discovery runs in the background and results are cached after the first
+trigger. Set `discover = false` to disable it.
 
-Set `discover = false` in [Configuration](#-configuration) to disable
-auto-discovery and use only manually defined handles.
+### Manual Handles
 
-### Manual Handles (Optional Overrides)
-
-For people not yet in the repo, or to override a discovered entry, you can
-define handles manually. Create a JSON file that maps handles to names and
-emails:
+Define handles manually for people not yet in the repo, or to override a
+discovered entry. Create a JSON file at
+`~/.local/share/nvim/git-coauthors/handles.json`:
 
 ```json
 {
@@ -84,44 +89,12 @@ emails:
 }
 ```
 
-Save this at `~/.local/share/nvim/git-coauthors/handles.json` (the default
-location, which is Neovim's standard data directory). You can also pass handles
-inline through your plugin config instead of using a file (see
-[Configuration](#-configuration)).
-
-The values are `Name <email>` strings matching the format git expects for
-[`Co-Authored-By` trailers](https://docs.github.com/en/pull-requests/committing-changes-to-your-project/creating-and-editing-commits/creating-a-commit-with-multiple-authors).
-Manual handles are merged on top of discovered ones, so a manual `@alice` entry
-overrides any `@alice` found via GitHub or git log.
-
-### Use in a Commit
-
-The plugin provides two things in gitcommit buffers:
-
-1. **A `cab` snippet** that expands to `Co-Authored-By: @handle`
-2. **Handle completion** triggered by typing `@` after the `Co-Authored-By:` prefix
-
-The typical flow:
-
-1. Type `cab` and expand the snippet
-2. The cursor lands on `@handle`. Type `@` to see all your handles, or start
-   typing a name to filter
-3. Select an entry to replace the placeholder with the full `Name <email>`
-
-Your resulting commit message looks like:
-
-```
-feat: add dark mode support
-
-Co-Authored-By: Alice Smith <alice@example.com>
-```
+Manual handles are merged on top of discovered ones. You can also pass handles
+inline (see [Configuration](#-configuration)).
 
 ## 🔧 Configuration
 
-Pass options via blink.cmp's provider `opts` or `require('git-coauthors').setup()`:
-
 ```lua
--- blink.cmp provider opts
 git_coauthors = {
   name = 'git_coauthors',
   module = 'git-coauthors.blink',
@@ -132,15 +105,9 @@ git_coauthors = {
     },
   },
 }
-
--- or standalone setup (nvim-cmp users)
-require('git-coauthors').setup({
-  handles_path = '~/my/custom/handles.json',
-  handles = {
-    ['@user'] = 'User Name <user@example.com>',
-  },
-})
 ```
+
+nvim-cmp users can pass the same options to `require('git-coauthors').setup()`.
 
 | Option | Default | Description |
 | --- | --- | --- |
@@ -148,26 +115,12 @@ require('git-coauthors').setup({
 | `handles_path` | `~/.local/share/nvim/git-coauthors/handles.json` | Path to the JSON handles file |
 | `handles` | `nil` | Inline handles (merged over file, inline wins on duplicates) |
 
-### Snippet
-
-The `cab` snippet is distributed as a VSCode-format snippet via `package.json`,
-which works with blink.cmp's built-in snippet source and LuaSnip's
-`from_vscode()` loader. The plugin also registers the snippet directly with
-LuaSnip as a fallback for lazy-loading timing issues.
-
 ## 🤝 Coexisting with Other `@` Sources
 
-If you use another plugin that triggers completions on `@` (e.g.,
+If you also use
 [blink-cmp-git](https://github.com/Kaiser-Yang/blink-cmp-git) for GitHub `@`
-mentions), both sources will fire on `Co-Authored-By:` lines. Use
-`is_coauthor_context()` to disable the other source's `@` completions only on
-those lines.
-
-### blink-cmp-git
-
-Use blink.cmp's `transform_items` on the git provider to suppress its results
-on `Co-Authored-By:` lines. This keeps `#` (issues), `:` (commits), and `@`
-(mentions) working everywhere else:
+mentions, use `is_coauthor_context()` with blink.cmp's `transform_items` to
+suppress its results on `Co-Authored-By:` lines:
 
 ```lua
 git = {
@@ -182,20 +135,8 @@ git = {
 },
 ```
 
-Note: blink-cmp-git's per-feature `enable` option is evaluated once at cache
-time, not per-keystroke, so it cannot be used for dynamic context checks.
-
-### nvim-cmp
-
-Filter out GitHub mention entries on `Co-Authored-By:` lines using
-`entry_filter`:
-
-```lua
-{ name = 'github', entry_filter = function()
-    return not require('git-coauthors').is_coauthor_context()
-  end,
-},
-```
+Note: blink-cmp-git's per-feature `enable` option is evaluated at cache time,
+not per-keystroke, so `transform_items` is the correct approach here.
 
 ## 🔨 Development
 
