@@ -2,6 +2,60 @@ local helpers = require('helpers')
 local items = require('git-coauthors.items')
 local git_coauthors = require('git-coauthors')
 
+describe('is_coauthor_context', function()
+  local original_get_current_line
+
+  before_each(function()
+    original_get_current_line = vim.api.nvim_get_current_line
+  end)
+
+  after_each(function()
+    vim.api.nvim_get_current_line = original_get_current_line
+  end)
+
+  it('returns true for Co-Authored-By: @handle', function()
+    vim.api.nvim_get_current_line = function()
+      return 'Co-Authored-By: @alice'
+    end
+    assert.is_true(git_coauthors.is_coauthor_context())
+  end)
+
+  it('returns true for Co-Authored-By: with no @ yet', function()
+    vim.api.nvim_get_current_line = function()
+      return 'Co-Authored-By: '
+    end
+    assert.is_true(git_coauthors.is_coauthor_context())
+  end)
+
+  it('returns true with leading whitespace', function()
+    vim.api.nvim_get_current_line = function()
+      return '  Co-Authored-By: @'
+    end
+    assert.is_true(git_coauthors.is_coauthor_context())
+  end)
+
+  it('returns false for plain text', function()
+    vim.api.nvim_get_current_line = function()
+      return 'some plain text'
+    end
+    assert.is_false(git_coauthors.is_coauthor_context())
+  end)
+
+  it('returns false for empty line', function()
+    vim.api.nvim_get_current_line = function()
+      return ''
+    end
+    assert.is_false(git_coauthors.is_coauthor_context())
+  end)
+
+  it('returns false for Signed-Off-By:', function()
+    vim.api.nvim_get_current_line = function()
+      return 'Signed-Off-By: @user'
+    end
+    assert.is_false(git_coauthors.is_coauthor_context())
+  end)
+end)
+
 describe('items', function()
   before_each(function()
     helpers.setup_mocks()

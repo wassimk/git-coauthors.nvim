@@ -155,6 +155,48 @@ which works with blink.cmp's built-in snippet source and LuaSnip's
 `from_vscode()` loader. The plugin also registers the snippet directly with
 LuaSnip as a fallback for lazy-loading timing issues.
 
+## 🤝 Coexisting with Other `@` Sources
+
+If you use another plugin that triggers completions on `@` (e.g.,
+[blink-cmp-git](https://github.com/Kaiser-Yang/blink-cmp-git) for GitHub `@`
+mentions), both sources will fire on `Co-Authored-By:` lines. Use
+`is_coauthor_context()` to disable the other source's `@` completions only on
+those lines.
+
+### blink-cmp-git
+
+Use blink.cmp's `transform_items` on the git provider to suppress its results
+on `Co-Authored-By:` lines. This keeps `#` (issues), `:` (commits), and `@`
+(mentions) working everywhere else:
+
+```lua
+git = {
+  name = 'Git',
+  module = 'blink-cmp-git',
+  transform_items = function(_, items)
+    if require('git-coauthors').is_coauthor_context() then
+      return {}
+    end
+    return items
+  end,
+},
+```
+
+Note: blink-cmp-git's per-feature `enable` option is evaluated once at cache
+time, not per-keystroke, so it cannot be used for dynamic context checks.
+
+### nvim-cmp
+
+Filter out GitHub mention entries on `Co-Authored-By:` lines using
+`entry_filter`:
+
+```lua
+{ name = 'github', entry_filter = function()
+    return not require('git-coauthors').is_coauthor_context()
+  end,
+},
+```
+
 ## 🔨 Development
 
 Run tests and lint:

@@ -15,4 +15,9 @@ function M.setup(opts)
   require('git-coauthors.handles')._reset_cache()
 end
 
+function M.is_coauthor_context()
+  local line = vim.api.nvim_get_current_line()
+  return line:find('^%s*Co%-Authored%-By:') ~= nil
+end
+
 return M
