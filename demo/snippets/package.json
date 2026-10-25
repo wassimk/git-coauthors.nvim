@@ -1,0 +1,11 @@
+{
+  "name": "git-coauthors-demo-snippets",
+  "contributes": {
+    "snippets": [
+      {
+        "language": ["gitcommit"],
+        "path": "./gitcommit.json"
+      }
+    ]
+  }
+}
